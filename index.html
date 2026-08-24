@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>饼干小铺 · 产品一览</title>
+
+<!-- 提前设好深浅色，避免页面打开时闪一下 -->
+<script>
+  (function () {
+    var t = localStorage.getItem('theme');
+    if (t !== 'dark' && t !== 'light') {
+      t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+
+<style>
+  /* ===== 颜色变量（想改整体色调就改这里）===== */
+  :root {
+    --bg: #f7f6f3;            /* 页面底色（浅色） */
+    --surface: #ffffff;       /* 卡片/弹窗底色 */
+    --text: #2b2a27;          /* 正文颜色 */
+    --muted: #8f8c84;         /* 次要文字 */
+    --text-soft: #5f5c54;     /* 详情文字（比次要文字更清楚、稍深一点） */
+    --border: #e8e5df;        /* 边框 */
+    --accent: #c98a4b;        /* 点缀色（暖饼干色） */
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.05);
+    /* 彩色小圆点的颜色（颜色待定，改这两个值就行） */
+    --dot-yuanwei: #e0a458;   /* 原味 */
+    --dot-wutang:  #6fae7c;   /* 无糖 */
+  }
+  :root[data-theme="dark"] {
+    --bg: #17171a;
+    --surface: #222226;
+    --text: #ececea;
+    --muted: #9a9a93;
+    --text-soft: #c7c7c0;     /* 详情文字（深色模式下更亮一点） */
+    --border: #33333a;
+    --accent: #d9a05f;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+    --dot-yuanwei: #e0a458;
+    --dot-wutang:  #7fb98b;
+  }
+
+  /* ===== 基础 ===== */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  [hidden] { display: none !important; }
+
+  /* 深浅色切换的平滑过渡 */
+  body, .topbar, .card, .theme-btn, .back-top, .search-input,
+  .modal-box, .empty, .site-footer {
+    transition: background-color .4s ease, color .4s ease, border-color .4s ease;
+  }
+
+  /* ===== 顶部 ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px 14px;
+  }
+  .topbar-inner, .search-wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .site-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .5px;
+  }
+  .site-title .accent { color: var(--accent); }
+
+  .theme-btn {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  .theme-btn:hover { border-color: var(--accent); }
+  .theme-btn svg { width: 22px; height: 22px; }
+  /* 浅色显示太阳，深色显示月亮 */
+  .theme-btn .icon-sun  { display: none; }
+  .theme-btn .icon-moon { display: none; }
+  :root[data-theme="light"] .theme-btn .icon-sun  { display: block; }
+  :root[data-theme="dark"]  .theme-btn .icon-moon { display: block; }
+
+  /* 搜索框 */
+  .search-wrap { position: relative; }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    font-size: 16px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+    box-shadow: var(--shadow);
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: var(--accent); }
+
+  /* ===== 卡片网格 ===== */
+  .content {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 20px 20px 32px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);   /* 手机：一行 2 个 */
+    gap: 16px;
+  }
+  @media (min-width: 600px)  { .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+  @media (min-width: 1000px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } } /* 电脑：一行 4 个 */
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease, background-color .4s ease;
+  }
+  .card:hover  { transform: translateY(-2px); }
+  .card:active { transform: scale(.98); }
+
+  .card-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;        /* 正方形 */
+    background: #eeeae2;
+  }
+  .card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;          /* 保持正方形，不变形，多出来的裁掉 */
+    display: block;
+  }
+
+  /* 角落的彩色小圆点（原味 / 无糖） */
+  .dot {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255,255,255,.65);
+  }
+  .dot[data-tag="有糖"] { background: var(--dot-yuanwei); }
+  .dot[data-tag="无糖"] { background: var(--dot-wutang); }
+
+  .card-name {
+    margin: 0;
+    padding: 13px 12px 14px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* 没搜到时的提示 */
+  .empty {
+    margin: 48px 0;
+    text-align: center;
+    font-size: 17px;
+    color: var(--muted);
+  }
+
+  /* ===== 弹窗 ===== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    animation: fadeIn .2s ease;
+  }
+  .modal-box {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    animation: popIn .22s ease;
+  }
+  .modal-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+    background: #eeeae2;
+  }
+  .modal-name {
+    margin: 16px 0 2px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+  .modal-meta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .meta-item {
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+  }
+  .meta-item.price { color: var(--accent); font-weight: 600; }
+  .modal-detail {
+    margin: 14px 2px 2px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-soft);
+    text-align: left;
+  }
+  .modal-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: #3a3a3a;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  }
+  .modal-close:hover { background: #000; }
+  .modal-close svg { width: 20px; height: 20px; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn  { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+  /* ===== 回到顶部 ===== */
+  .back-top {
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    z-index: 40;
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity .25s ease, transform .25s ease, visibility .25s,
+                background-color .4s ease, color .4s ease, border-color .4s ease;
+  }
+  .back-top.show { opacity: 1; visibility: visible; transform: none; }
+  .back-top:hover { border-color: var(--accent); }
+  .back-top svg { width: 24px; height: 24px; }
+
+  /* ===== 页脚 ===== */
+  .site-footer {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 8px 20px 40px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <h1 class="site-title">饼干<span class="accent">小铺</span></h1>
+    <button id="themeToggle" class="theme-btn" aria-label="切换深浅色" title="切换深浅色">
+      <!-- 太阳 -->
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+      <!-- 月亮 -->
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </button>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="M21 21l-4.35-4.35"></path>
+    </svg>
+    <input id="searchInput" class="search-input" type="search" placeholder="输入名称找饼干..." autocomplete="off">
+  </div>
+</header>
+
+<main class="content">
+  <div id="grid" class="grid"></div>
+  <p id="empty" class="empty" hidden>目前我们没有这个产品哦～</p>
+</main>
+
+<footer class="site-footer">仅作展示 · 想拿多少、怎么拿，我们在外面慢慢聊～</footer>
+
+<button id="backToTop" class="back-top" aria-label="回到顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5"></path>
+    <path d="M5 12l7-7 7 7"></path>
+  </svg>
+</button>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalName">
+    <button class="modal-close" data-close aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6L6 18"></path>
+      </svg>
+    </button>
+    <img id="modalImg" class="modal-img" alt="">
+    <h2 id="modalName" class="modal-name"></h2>
+    <div class="modal-meta">
+      <span id="modalWeight" class="meta-item" hidden></span>
+      <span id="modalPrice" class="meta-item price" hidden></span>
+    </div>
+    <p id="modalDetail" class="modal-detail" hidden></p>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var PRODUCTS = window.PRODUCTS || [];
+
+  // 没有照片时显示的占位图
+  var PLACEHOLDER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">' +
+    '<rect width="480" height="480" fill="#eeeae2"/>' +
+    '<g fill="#d5ccbe">' +
+    '<circle cx="240" cy="220" r="86"/>' +
+    '<circle cx="188" cy="188" r="12"/><circle cx="240" cy="160" r="12"/><circle cx="292" cy="188" r="12"/>' +
+    '<circle cx="240" cy="220" r="12"/><circle cx="192" cy="244" r="12"/><circle cx="288" cy="244" r="12"/>' +
+    '</g>' +
+    '<text x="240" y="360" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="34" fill="#a49b8b">照片待添加</text>' +
+    '</svg>';
+  var PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(PLACEHOLDER_SVG);
+
+  var gridEl = document.getElementById('grid');
+  var emptyEl = document.getElementById('empty');
+  var searchInput = document.getElementById('searchInput');
+  var modal = document.getElementById('modal');
+  var modalImg = document.getElementById('modalImg');
+  var modalName = document.getElementById('modalName');
+  var modalWeight = document.getElementById('modalWeight');
+  var modalPrice = document.getElementById('modalPrice');
+  var modalDetail = document.getElementById('modalDetail');
+  var backToTop = document.getElementById('backToTop');
+  var themeToggle = document.getElementById('themeToggle');
+
+  function pic(item) { return item.image || PLACEHOLDER; }
+
+  function buildCard(item) {
+    var card = document.createElement('article');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', item.name);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'card-img-wrap';
+
+    var img = document.createElement('img');
+    img.className = 'card-img';
+    img.loading = 'lazy';
+    img.alt = item.name;
+    img.src = pic(item);
+    wrap.appendChild(img);
+
+    if (item.tag) {
+      var dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.setAttribute('data-tag', item.tag);
+      dot.title = item.tag;
+      wrap.appendChild(dot);
+    }
+
+    var name = document.createElement('h3');
+    name.className = 'card-name';
+    name.textContent = item.name;
+
+    card.appendChild(wrap);
+    card.appendChild(name);
+
+    card.addEventListener('click', function () { openModal(item); });
+    card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(item); }
+    });
+    return card;
+  }
+
+  function render(list) {
+    gridEl.innerHTML = '';
+    list.forEach(function (item) { gridEl.appendChild(buildCard(item)); });
+    emptyEl.hidden = list.length > 0;
+  }
+
+  // 搜索：打字即筛
+  searchInput.addEventListener('input', function () {
+    var q = searchInput.value.trim().toLowerCase();
+    var list = PRODUCTS.filter(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; });
+    render(list);
+  });
+
+  // 弹窗
+  var lastFocus = null;
+  function fillMeta(el, label, value) {
+    if (value) { el.textContent = label + '：' + value; el.hidden = false; }
+    else { el.hidden = true; }
+  }
+  function fillDetail(value) {
+    if (value) { modalDetail.textContent = value; modalDetail.hidden = false; }
+    else { modalDetail.hidden = true; }
+  }
+  function openModal(item) {
+    lastFocus = document.activeElement;
+    modalImg.src = pic(item);
+    modalImg.alt = item.name;
+    modalName.textContent = item.name;
+    fillMeta(modalWeight, '重量', item.weight);
+    fillMeta(modalPrice, '价格', item.price);
+    fillDetail(item.detail);
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    var closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) closeBtn.focus();
+  }
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  modal.addEventListener('click', function (e) {
+    if (e.target.closest('[data-close]')) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+
+  // 深浅色切换
+  var mqDark = window.matchMedia('(prefers-color-scheme: dark)');
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeToggle.setAttribute('title', t === 'dark' ? '切换到浅色' : '切换到深色');
+  }
+  applyTheme(currentTheme());
+
+  themeToggle.addEventListener('click', function () {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+  });
+  // 没手动选过的时候，跟随系统变化
+  mqDark.addEventListener('change', function (e) {
+    if (!localStorage.getItem('theme')) applyTheme(e.matches ? 'dark' : 'light');
+  });
+
+  // 回到顶部
+  var scrolling = false;
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function stopScroll() { scrolling = false; }
+  function scrollToTop() {
+    scrolling = true;
+    var startY = window.scrollY;
+    if (startY <= 0) { scrolling = false; return; }
+    var duration = 500;
+    var startTime = performance.now();
+    function step(now) {
+      if (!scrolling) return;
+      var t = Math.min((now - startTime) / duration, 1);
+      window.scrollTo(0, startY * (1 - easeOutCubic(t)));
+      if (t < 1) requestAnimationFrame(step);
+      else scrolling = false;
+    }
+    requestAnimationFrame(step);
+  }
+  backToTop.addEventListener('click', scrollToTop);
+  // 用户自己滚动时立即停下
+  window.addEventListener('wheel', stopScroll, { passive: true });
+  window.addEventListener('touchmove', stopScroll, { passive: true });
+  window.addEventListener('keydown', function (e) {
+    var keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' '];
+    if (keys.indexOf(e.key) !== -1) stopScroll();
+  });
+
+  function updateBackTop() {
+    backToTop.classList.toggle('show', window.scrollY > 300);
+  }
+  window.addEventListener('scroll', updateBackTop, { passive: true });
+  updateBackTop();
+
+  // 首次渲染
+  render(PRODUCTS);
+})();
+</script>
+</body>
+</html>
