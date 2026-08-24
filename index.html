@@ -19,29 +19,41 @@
 <style>
   /* ===== 颜色变量（想改整体色调就改这里）===== */
   :root {
-    --bg: #f7f6f3;            /* 页面底色（浅色） */
-    --surface: #ffffff;       /* 卡片/弹窗底色 */
-    --text: #2b2a27;          /* 正文颜色 */
-    --muted: #8f8c84;         /* 次要文字 */
-    --text-soft: #5f5c54;     /* 详情文字（比次要文字更清楚、稍深一点） */
-    --border: #e8e5df;        /* 边框 */
-    --accent: #c98a4b;        /* 点缀色（暖饼干色） */
-    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.05);
-    /* 彩色小圆点的颜色（颜色待定，改这两个值就行） */
-    --dot-yuanwei: #e0a458;   /* 原味 */
-    --dot-wutang:  #6fae7c;   /* 无糖 */
+    --bg: #f4ecdb;            /* 顶部/标签底色（米色） */
+    --topbar-bg: rgba(246, 238, 224, 0.5);   /* 顶部半透明（露出背后渐变） */
+    --surface: #fffcf5;       /* 卡片/弹窗底色（暖白） */
+    --text: #3d3427;          /* 正文颜色（暖深棕） */
+    --muted: #8a7d6a;         /* 次要文字 */
+    --text-soft: #5c5142;     /* 详情文字（清楚一点） */
+    --border: #e7dbc4;        /* 边框（米色） */
+    --accent: #c07a35;        /* 点缀色（焦糖棕） */
+    --shadow: 0 1px 3px rgba(120,95,60,.08), 0 8px 24px rgba(120,95,60,.10);
+    /* 动态渐变的四个颜色（米色 + 橙色，缓慢流动） */
+    --grad-a: #f6eee0;
+    --grad-b: #f4a95e;
+    --grad-c: #fbe3c1;
+    --grad-d: #ef9d4f;
+    /* 彩色小圆点：有糖暖橙；无糖绿色 */
+    --dot-sugar:     #e0a458;
+    --dot-sugarfree: #6fae7c;
   }
   :root[data-theme="dark"] {
-    --bg: #17171a;
-    --surface: #222226;
-    --text: #ececea;
-    --muted: #9a9a93;
-    --text-soft: #c7c7c0;     /* 详情文字（深色模式下更亮一点） */
-    --border: #33333a;
-    --accent: #d9a05f;
-    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
-    --dot-yuanwei: #e0a458;
-    --dot-wutang:  #7fb98b;
+    --bg: #251b12;            /* 页面底色（深暖棕） */
+    --topbar-bg: rgba(37, 27, 18, 0.5);   /* 顶部半透明（露出背后渐变） */
+    --surface: #2f2419;       /* 卡片/弹窗底色（深暖棕） */
+    --text: #f2e9db;          /* 正文（暖米白） */
+    --muted: #bfab93;         /* 次要文字 */
+    --text-soft: #dfd2bf;     /* 详情文字 */
+    --border: #4a3a28;        /* 边框（暖棕） */
+    --accent: #e2a55a;        /* 点缀色（焦糖橙，呼应浅色） */
+    --shadow: 0 1px 3px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.45);
+    /* 深色（焦糖暖棕 + 琥珀）渐变，跟浅色的米橙呼应 */
+    --grad-a: #2e2013;
+    --grad-b: #1b130b;
+    --grad-c: #4a2d15;
+    --grad-d: #251a10;
+    --dot-sugar:     #e6ad66;
+    --dot-sugarfree: #8fbf9a;
   }
 
   /* ===== 基础 ===== */
@@ -54,23 +66,36 @@
     font-size: 16px;
     line-height: 1.5;
     color: var(--text);
-    background: var(--bg);
+    background-color: var(--bg);
+    background-image: linear-gradient(120deg, var(--grad-a), var(--grad-b), var(--grad-c), var(--grad-d));
+    background-size: 300% 300%;
+    animation: gradientShift 9s ease infinite;
     -webkit-font-smoothing: antialiased;
   }
   [hidden] { display: none !important; }
 
+  /* 米色动态渐变（流动） */
+  @keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body { animation: none; }
+  }
+
   /* 深浅色切换的平滑过渡 */
-  body, .topbar, .card, .theme-btn, .back-top, .search-input,
-  .modal-box, .empty, .site-footer {
+  body, .topbar, .card, .card-name, .card-detail, .theme-btn, .back-top,
+  .search-input, .modal-box, .meta-item, .page-btn, .page-info, .empty,
+  .site-footer {
     transition: background-color .4s ease, color .4s ease, border-color .4s ease;
   }
 
   /* ===== 顶部 ===== */
   .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: var(--bg);
+    background-color: var(--topbar-bg);
+    -webkit-backdrop-filter: blur(16px) saturate(1.15);
+    backdrop-filter: blur(16px) saturate(1.15);
     border-bottom: 1px solid var(--border);
     padding: 12px 20px 14px;
   }
@@ -148,10 +173,10 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);   /* 手机：一行 2 个 */
-    gap: 16px;
+    grid-template-columns: 1fr;                /* 手机：一行 1 个（大卡） */
+    gap: 18px;
   }
-  @media (min-width: 600px)  { .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+  @media (min-width: 600px)  { .grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
   @media (min-width: 1000px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } } /* 电脑：一行 4 个 */
 
   .card {
@@ -172,7 +197,7 @@
     position: relative;
     width: 100%;
     aspect-ratio: 1 / 1;        /* 正方形 */
-    background: #eeeae2;
+    background: #efe6d4;
   }
   .card-img {
     width: 100%;
@@ -181,7 +206,7 @@
     display: block;
   }
 
-  /* 角落的彩色小圆点（原味 / 无糖） */
+  /* 角落的彩色小圆点（有糖/无糖） */
   .dot {
     position: absolute;
     top: 10px;
@@ -189,10 +214,10 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
+    background: var(--dot-sugar);   /* 默认：有糖 */
     box-shadow: 0 0 0 2px rgba(255,255,255,.65);
   }
-  .dot[data-tag="有糖"] { background: var(--dot-yuanwei); }
-  .dot[data-tag="无糖"] { background: var(--dot-wutang); }
+  .dot[data-tag="无糖"] { background: var(--dot-sugarfree); }
 
   .card-name {
     margin: 0;
@@ -203,12 +228,58 @@
     line-height: 1.4;
   }
 
+  /* 卡片上的详情：电脑/平板隐藏，只在手机上显示两行 */
+  .card-detail {
+    display: none;
+    margin: 0;
+    padding: 0 14px 16px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--muted);
+    text-align: center;
+  }
+  @media (max-width: 599px) {
+    .card-name   { font-size: 18px; padding-bottom: 6px; }
+    .card-detail {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
   /* 没搜到时的提示 */
   .empty {
     margin: 48px 0;
     text-align: center;
     font-size: 17px;
     color: var(--muted);
+  }
+
+  /* ===== 分页（只在手机上显示）===== */
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 26px;
+  }
+  .page-btn {
+    font-size: 16px;
+    padding: 10px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .page-btn:disabled { opacity: .4; cursor: default; }
+  .page-btn:not(:disabled):hover { border-color: var(--accent); }
+  .page-info {
+    font-size: 15px;
+    color: var(--muted);
+    min-width: 84px;
+    text-align: center;
   }
 
   /* ===== 弹窗 ===== */
@@ -245,7 +316,7 @@
     object-fit: cover;
     border-radius: 12px;
     display: block;
-    background: #eeeae2;
+    background: #efe6d4;
   }
   .modal-name {
     margin: 16px 0 2px;
@@ -364,6 +435,11 @@
 
 <main class="content">
   <div id="grid" class="grid"></div>
+  <nav id="pager" class="pager" hidden>
+    <button id="prevPage" class="page-btn" type="button">‹ 上一页</button>
+    <span id="pageInfo" class="page-info">第 1 / 1 页</span>
+    <button id="nextPage" class="page-btn" type="button">下一页 ›</button>
+  </nav>
   <p id="empty" class="empty" hidden>目前我们没有这个产品哦～</p>
 </main>
 
@@ -398,21 +474,26 @@
 <script>
 (function () {
   var PRODUCTS = window.PRODUCTS || [];
+  var PAGE_SIZE = 6;
 
   // 没有照片时显示的占位图
   var PLACEHOLDER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">' +
-    '<rect width="480" height="480" fill="#eeeae2"/>' +
-    '<g fill="#d5ccbe">' +
+    '<rect width="480" height="480" fill="#efe6d4"/>' +
+    '<g fill="#d8c9ad">' +
     '<circle cx="240" cy="220" r="86"/>' +
     '<circle cx="188" cy="188" r="12"/><circle cx="240" cy="160" r="12"/><circle cx="292" cy="188" r="12"/>' +
     '<circle cx="240" cy="220" r="12"/><circle cx="192" cy="244" r="12"/><circle cx="288" cy="244" r="12"/>' +
     '</g>' +
-    '<text x="240" y="360" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="34" fill="#a49b8b">照片待添加</text>' +
+    '<text x="240" y="360" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="34" fill="#a2947f">照片待添加</text>' +
     '</svg>';
   var PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(PLACEHOLDER_SVG);
 
   var gridEl = document.getElementById('grid');
   var emptyEl = document.getElementById('empty');
+  var pager = document.getElementById('pager');
+  var prevBtn = document.getElementById('prevPage');
+  var nextBtn = document.getElementById('nextPage');
+  var pageInfo = document.getElementById('pageInfo');
   var searchInput = document.getElementById('searchInput');
   var modal = document.getElementById('modal');
   var modalImg = document.getElementById('modalImg');
@@ -422,6 +503,10 @@
   var modalDetail = document.getElementById('modalDetail');
   var backToTop = document.getElementById('backToTop');
   var themeToggle = document.getElementById('themeToggle');
+
+  var currentPage = 1;
+  var mqMobile = window.matchMedia('(max-width: 599px)');
+  function isMobile() { return mqMobile.matches; }
 
   function pic(item) { return item.image || PLACEHOLDER; }
 
@@ -457,6 +542,13 @@
     card.appendChild(wrap);
     card.appendChild(name);
 
+    if (item.detail) {
+      var detail = document.createElement('p');
+      detail.className = 'card-detail';
+      detail.textContent = item.detail;
+      card.appendChild(detail);
+    }
+
     card.addEventListener('click', function () { openModal(item); });
     card.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(item); }
@@ -464,17 +556,56 @@
     return card;
   }
 
-  function render(list) {
-    gridEl.innerHTML = '';
-    list.forEach(function (item) { gridEl.appendChild(buildCard(item)); });
-    emptyEl.hidden = list.length > 0;
+  function getFiltered() {
+    var q = searchInput.value.trim().toLowerCase();
+    return PRODUCTS.filter(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; });
   }
 
-  // 搜索：打字即筛
+  function render() {
+    var list = getFiltered();
+    var totalPages = 1;
+    var pageItems = list;
+
+    if (isMobile()) {
+      totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      var start = (currentPage - 1) * PAGE_SIZE;
+      pageItems = list.slice(start, start + PAGE_SIZE);
+    }
+
+    gridEl.innerHTML = '';
+    pageItems.forEach(function (item) { gridEl.appendChild(buildCard(item)); });
+    emptyEl.hidden = list.length > 0;
+
+    if (isMobile() && totalPages > 1) {
+      pager.hidden = false;
+      pageInfo.textContent = '第 ' + currentPage + ' / ' + totalPages + ' 页';
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    } else {
+      pager.hidden = true;
+    }
+  }
+
+  // 搜索：打字即筛，回到第一页
   searchInput.addEventListener('input', function () {
-    var q = searchInput.value.trim().toLowerCase();
-    var list = PRODUCTS.filter(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; });
-    render(list);
+    currentPage = 1;
+    render();
+  });
+
+  // 分页（手机）
+  prevBtn.addEventListener('click', function () {
+    if (currentPage > 1) { currentPage--; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  });
+  nextBtn.addEventListener('click', function () {
+    var total = Math.max(1, Math.ceil(getFiltered().length / PAGE_SIZE));
+    if (currentPage < total) { currentPage++; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  });
+
+  // 从手机横竖屏/宽度变化时，重新排
+  mqMobile.addEventListener('change', function () {
+    currentPage = 1;
+    render();
   });
 
   // 弹窗
@@ -568,7 +699,7 @@
   updateBackTop();
 
   // 首次渲染
-  render(PRODUCTS);
+  render();
 })();
 </script>
 </body>
