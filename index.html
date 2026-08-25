@@ -587,6 +587,38 @@
     max-width: 80vw;
     text-align: center;
   }
+
+  /* ===== 确认弹窗（删除用）===== */
+  .confirm-box { max-width: 340px; }
+  .confirm-title { margin: 4px 0 12px; font-size: 18px; font-weight: 700; }
+  .confirm-msg { margin: 0 0 20px; font-size: 15px; color: var(--text-soft); line-height: 1.6; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-actions .btn-sm { flex: 1; }
+  .btn-danger {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: #c94b3d;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .btn-danger:hover { filter: brightness(1.05); }
+
+  /* ===== 保存中的转圈 ===== */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--muted);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: -2px;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -735,6 +767,24 @@
     <div class="form-actions">
       <button id="fClearImage" class="btn-sm" type="button">删除照片</button>
       <button id="fSave" class="btn-sm" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认删除 -->
+<div id="confirmModal" class="modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-box confirm-box" role="dialog" aria-modal="true">
+    <button class="modal-close" data-close aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6L6 18"></path>
+      </svg>
+    </button>
+    <h2 class="confirm-title">确认操作</h2>
+    <p id="confirmMsg" class="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button id="confirmCancel" class="btn-sm" type="button">取消</button>
+      <button id="confirmOk" class="btn-danger" type="button">确定</button>
     </div>
   </div>
 </div>
@@ -1038,6 +1088,33 @@
   var fPreview = document.getElementById('fPreview');
   var fClear = document.getElementById('fClearImage');
   var fSave = document.getElementById('fSave');
+  var confirmModal = document.getElementById('confirmModal');
+  var confirmMsg = document.getElementById('confirmMsg');
+  var confirmOk = document.getElementById('confirmOk');
+  var confirmCancel = document.getElementById('confirmCancel');
+  var confirmResolve = null;   // 确认弹窗的回调
+
+  function showConfirm(msg, okText) {
+    return new Promise(function (resolve) {
+      confirmResolve = resolve;
+      confirmMsg.textContent = msg;
+      confirmOk.textContent = okText || '确定';
+      confirmModal.hidden = false;
+      setTimeout(function () { confirmOk.focus(); }, 50);
+    });
+  }
+  function finishConfirm(result) {
+    if (confirmResolve) {
+      confirmResolve(result);
+      confirmResolve = null;
+    }
+    confirmModal.hidden = true;
+  }
+  confirmOk.addEventListener('click', function () { finishConfirm(true); });
+  confirmCancel.addEventListener('click', function () { finishConfirm(false); });
+  confirmModal.addEventListener('click', function (e) {
+    if (e.target.closest('[data-close]')) finishConfirm(false);
+  });
 
   var editingId = null;      // 正在编辑的产品下标（null = 新增）
   var pendingImage = null;   // 表单里的照片：null=不改，''=删除，字符串=新照片
@@ -1137,7 +1214,8 @@
   async function removeProduct(i) {
     var item = PRODUCTS[i];
     if (!item) return;
-    if (!confirm('确定删除「' + item.name + '」吗？')) return;
+    var ok = await showConfirm('确定删除「' + item.name + '」吗？', '删除');
+    if (!ok) return;
     try {
       if (sb && item.id != null) {
         var res = await sb.from('products').delete().eq('id', item.id);
@@ -1199,9 +1277,15 @@
     updatePreview();
   });
 
+  function setSaveLoading(on) {
+    fSave.disabled = on;
+    fSave.innerHTML = on ? '<span class="spinner"></span>保存中...' : '保存';
+  }
+
   fSave.addEventListener('click', async function () {
     var name = fName.value.trim();
     if (!name) { alert('请填产品名称'); return; }
+    setSaveLoading(true);
     var sortVal = fSort.value.trim();
     var item = {
       name: name,
@@ -1238,6 +1322,8 @@
       render();
     } catch (e) {
       showToast('保存失败：' + (e.message || '请检查网络'), true);
+    } finally {
+      setSaveLoading(false);
     }
   });
 
@@ -1264,7 +1350,8 @@
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
-      if (!productForm.hidden) closeForm();
+      if (!confirmModal.hidden) finishConfirm(false);
+      else if (!productForm.hidden) closeForm();
       else if (!passModal.hidden) closePass();
     }
   });
