@@ -456,12 +456,38 @@
   }
   .admin-inner { max-width: 720px; margin: 0 auto; }
   .admin-head {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;      /* 标题居中 */
     margin-bottom: 16px;
   }
   .admin-head h2 { margin: 0; font-size: 22px; font-weight: 700; }
+  .admin-back {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  .admin-back:hover { border-color: var(--accent); }
+  .admin-back svg { width: 22px; height: 22px; }
+  .admin-head .btn-sm {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
   .btn-sm {
     padding: 8px 14px;
     font-size: 14px;
@@ -657,6 +683,12 @@
 <div id="adminPanel" class="admin-panel" hidden>
   <div class="admin-inner">
     <div class="admin-head">
+      <button id="adminBack" class="admin-back" type="button" aria-label="返回" title="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"></path>
+          <path d="M12 19l-7-7 7-7"></path>
+        </svg>
+      </button>
       <h2>管理后台</h2>
       <button id="adminExit" class="btn-sm" type="button">退出登录</button>
     </div>
@@ -994,6 +1026,7 @@
   var adminPanel = document.getElementById('adminPanel');
   var adminList = document.getElementById('adminList');
   var adminExit = document.getElementById('adminExit');
+  var adminBack = document.getElementById('adminBack');
   var addBtn = document.getElementById('addProduct');
   var productForm = document.getElementById('productForm');
   var formTitle = document.getElementById('formTitle');
@@ -1220,6 +1253,7 @@
     if (sb) sb.auth.signOut();
     closeAdmin();
   });
+  adminBack.addEventListener('click', closeAdmin);
   addBtn.addEventListener('click', function () { openForm(null); });
 
   passModal.addEventListener('click', function (e) {
